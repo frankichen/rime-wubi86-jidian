@@ -1,0 +1,92 @@
+# Rime schema settings
+# encoding: utf-8
+
+schema:
+  schema_id: wubi86_jidian_pinyin_smart
+  name: "五笔拼音·智能试验版"
+  version: "1.0"
+  author:
+    - 发明人 王永民先生
+    - 基于 KyleBing 极点五笔方案优化
+  description: |
+    五笔 86 与拼音混输试验版。
+    默认英文标点，开启个人词频学习和短语自动学习；
+    原 wubi86_jidian_pinyin 方案保持不变，可随时切回。
+  dependencies:
+    - pinyin_simp
+
+switches:
+  - name: full_shape
+    reset: 0
+    states: [ 半角, 全角 ]
+  - name: extended_charset
+    reset: 0
+    states: [ 常用, 扩展 ]
+  - name: ascii_punct
+    reset: 1
+    states: [ 中文标点, 英文标点 ]
+
+engine:
+  processors:
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - reverse_lookup_translator@reverse_lookup
+    - table_translator
+
+speller:
+
+translator:
+  dictionary: wubi86_jidian
+  enable_charset_filter: true
+  enable_completion: true
+
+  # 保持五笔输入的确定性，不启用整句拼接
+  enable_sentence: false
+
+  # 开启个人词频及短语学习
+  enable_user_dict: true
+  enable_encoder: true
+  encode_commit_history: true
+  max_phrase_length: 6
+  user_dict: wubi86_jidian_smart_user
+  db_class: tabledb
+
+  # z 开头通常用于特殊功能，不自动写入用户词典
+  disable_user_dict_for_patterns:
+    - "^z.*$"
+
+# 输入编码同时进行拼音反查，实现五笔与拼音混输
+abc_segmentor:
+  extra_tags:
+    - reverse_lookup
+
+reverse_lookup:
+  dictionary: pinyin_simp
+  enable_user_dict: true
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+
+punctuator:
+  import_preset: default
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default
