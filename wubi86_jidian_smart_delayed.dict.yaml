@@ -1,0 +1,11 @@
+# Rime dictionary
+# encoding: utf-8
+---
+name: wubi86_jidian_smart_delayed
+version: "1.0"
+sort: by_weight
+use_preset_vocabulary: false
+import_tables:
+  - wubi86_jidian
+  - wubi86_jidian_delayed
+...
