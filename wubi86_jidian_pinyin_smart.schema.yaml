@@ -3,15 +3,16 @@
 
 schema:
   schema_id: wubi86_jidian_pinyin_smart
-  name: "五笔拼音·智能试验版"
-  version: "1.0"
+  name: "五笔拼音·延后排序版"
+  version: "1.1"
   author:
     - 发明人 王永民先生
     - 基于 KyleBing 极点五笔方案优化
   description: |
-    五笔 86 与拼音混输试验版。
-    默认英文标点，开启个人词频学习和短语自动学习；
-    原 wubi86_jidian_pinyin 方案保持不变，可随时切回。
+    五笔 86 与拼音混输。
+    输入过程中只读取静态词典，不查询或写入动态用户词典；
+    已上屏候选异步追加到日志，批量生成延后排序词库后，
+    下一次重新部署才应用新的候选顺序。
   dependencies:
     - pinyin_simp
 
@@ -32,6 +33,7 @@ engine:
     - recognizer
     - key_binder
     - speller
+    - lua_processor@*wubi86_jidian_delayed_learning
     - punctuator
     - selector
     - navigator
@@ -50,24 +52,18 @@ engine:
 speller:
 
 translator:
-  dictionary: wubi86_jidian
+  # 组合词典：原始极点词库 + 批量生成的延后排序词库
+  dictionary: wubi86_jidian_smart_delayed
   enable_charset_filter: true
   enable_completion: true
 
   # 保持五笔输入的确定性，不启用整句拼接
   enable_sentence: false
 
-  # 开启个人词频及短语学习
-  enable_user_dict: true
-  enable_encoder: true
-  encode_commit_history: true
-  max_phrase_length: 6
-  user_dict: wubi86_jidian_smart_user
-  db_class: tabledb
-
-  # z 开头通常用于特殊功能，不自动写入用户词典
-  disable_user_dict_for_patterns:
-    - "^z.*$"
+  # 禁止在按键路径中查询、写入动态用户库，避免候选实时跳动和卡顿
+  enable_user_dict: false
+  enable_encoder: false
+  encode_commit_history: false
 
 # 输入编码同时进行拼音反查，实现五笔与拼音混输
 abc_segmentor:
@@ -76,11 +72,17 @@ abc_segmentor:
 
 reverse_lookup:
   dictionary: pinyin_simp
-  enable_user_dict: true
+  # 拼音反查同样关闭实时用户词频
+  enable_user_dict: false
   preedit_format:
     - xform/([nl])v/$1ü/
     - xform/([nl])ue/$1üe/
     - xform/([jqxy])v/$1u/
+
+# Lua 只做轻量追加写入，不参与候选计算与排序
+wubi86_jidian_delayed_learning:
+  log_file: wubi86_jidian_delayed_learning.tsv
+  max_code_length: 32
 
 punctuator:
   import_preset: default

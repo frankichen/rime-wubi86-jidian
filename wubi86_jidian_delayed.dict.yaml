@@ -1,0 +1,9 @@
+# Rime dictionary
+# encoding: utf-8
+# 此文件由 tools/build_delayed_ranking.py 批量生成。
+---
+name: wubi86_jidian_delayed
+version: "1.0"
+sort: by_weight
+use_preset_vocabulary: false
+...
